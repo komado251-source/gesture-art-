@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ศิลป์จากท่าทาง</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: เต็มจอ ภาพกล้องสดอยู่ชั้นล่าง อนุภาคลอยทับและจางหายไปเอง ชั้นบนสุดคือจุดมือและแผงควบคุมกึ่งโปร่งใส */
+:root{
+  --bg:#05060a; --panel:rgba(14,16,26,.78); --line:rgba(255,255,255,.14); --ink:#eef0f6; --muted:#9aa3b5; --accent:#ff8ad1; --accent-ink:#2a0a20;
+  --f-display:'Bai Jamjuree','Noto Sans Thai',system-ui,sans-serif;
+  --f-body:'Noto Sans Thai',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;overflow:hidden}
+button,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);filter:brightness(.78) contrast(1.05)}
+#cam.off{opacity:0}
+#art,#ov{position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#ov{pointer-events:none}
+.top{position:fixed;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 0 max(14px,env(safe-area-inset-left,0px));pointer-events:none}
+.top>*{pointer-events:auto}
+h1{font-family:var(--f-display);font-size:18px;margin:0;font-weight:700;text-shadow:0 1px 8px rgba(0,0,0,.7)}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:3px 12px;font-size:12.5px;backdrop-filter:blur(8px)}
+.guide{position:fixed;left:max(14px,env(safe-area-inset-left,0px));top:58px;width:min(262px,calc(100vw - 28px));background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;backdrop-filter:blur(8px)}
+.guide h2{font-family:var(--f-display);font-size:13px;margin:0 0 6px;display:flex;justify-content:space-between;align-items:center}
+.guide h2 button{border:0;background:transparent;color:var(--muted);font-size:12px;padding:0}
+.guide ul{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.guide li{display:grid;grid-template-columns:86px 1fr;gap:8px;font-size:12.5px;line-height:1.4}
+.guide li b{color:var(--accent);font-weight:600}
+.guide.min ul{display:none}
+.bottom{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;
+  padding:0 max(14px,env(safe-area-inset-right,0px)) max(14px,env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));pointer-events:none}
+.bar{pointer-events:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;backdrop-filter:blur(8px);max-width:100%}
+.sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;padding:0}
+.sw[aria-pressed="true"]{border-color:#fff}
+.btn{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-size:13px}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{color:var(--accent-ink);filter:brightness(1.08)}
+#gesture{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(70px + env(safe-area-inset-bottom,0px));font-family:var(--f-display);font-weight:700;font-size:20px;text-shadow:0 2px 12px rgba(0,0,0,.9);pointer-events:none;text-align:center}
+#toast{position:fixed;left:50%;top:60px;transform:translateX(-50%);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 14px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;backdrop-filter:blur(8px)}
+#toast.on{opacity:1}
+.start{position:fixed;inset:0;display:grid;place-items:center;background:rgba(5,6,10,.82);padding:16px;z-index:5}
+.start[hidden]{display:none}
+.card{width:min(460px,100%);background:#0d0f18;border:1px solid var(--line);border-radius:12px;padding:20px;display:grid;gap:12px}
+.card h2{font-family:var(--f-display);font-size:22px;margin:0}
+.card p{margin:0;color:var(--muted);line-height:1.6}
+.card .row{display:flex;gap:10px;flex-wrap:wrap}
+#msg{color:var(--accent);min-height:1.4em;font-size:13px;overflow-wrap:anywhere}
+@media (max-width:640px){.guide{top:auto;bottom:calc(120px + env(safe-area-inset-bottom,0px))}#gesture{bottom:calc(190px + env(safe-area-inset-bottom,0px))}}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<video id="cam" playsinline muted></video>
+<canvas id="art"></canvas>
+<canvas id="ov"></canvas>
+
+<div class="top">
+  <h1>ศิลป์จากท่าทาง</h1>
+  <span class="chip" id="status" aria-live="polite">ยังไม่ได้เริ่ม</span>
+</div>
+
+<aside class="guide" id="guide" aria-label="ท่าทางที่ใช้ได้">
+  <h2>ท่าทางมือ <button id="gToggle" type="button" aria-expanded="true">ย่อ</button></h2>
+  <ul>
+    <li><b>กำ แล้วแบมือ</b><span>วงกลมอนุภาคพุ่งออกจากฝ่ามือ</span></li>
+    <li><b>ชี้นิ้วชี้</b><span>วาดเส้นอนุภาคตามปลายนิ้ว</span></li>
+    <li><b>ชู 2 นิ้ว</b><span>หัวใจอนุภาค</span></li>
+    <li><b>ชู 3 นิ้ว</b><span>ดาวห้าแฉก</span></li>
+    <li><b>ท่าร็อก</b><span>ผีเสื้อ (ชี้นิ้วชี้กับก้อย)</span></li>
+    <li><b>ยกนิ้วโป้ง</b><span>ดอกไม้</span></li>
+    <li><b>บีบนิ้ว</b><span>สลับชุดสี</span></li>
+    <li><b>แบมือค้าง</b><span>ประกายที่ปลายนิ้ว</span></li>
+  </ul>
+</aside>
+
+<div id="gesture" aria-live="polite"></div>
+<div id="toast" role="status"></div>
+
+<div class="bottom">
+  <div class="bar" id="pals" role="group" aria-label="ชุดสี"></div>
+  <div class="bar">
+    <button class="btn" id="bClear" type="button">ล้าง</button>
+    <button class="btn" id="bCam" type="button">ซ่อนภาพกล้อง</button>
+    <button class="btn primary" id="bSave" type="button">ถ่ายภาพ (PNG)</button>
+  </div>
+</div>
+
+<div class="start" id="start">
+  <div class="card">
+    <h2>วาดด้วยท่าทางมือ</h2>
+    <p>เปิดกล้องแล้วทำท่าทางมือ อนุภาคจะลอยทับบนภาพสดของคุณและค่อย ๆ จางหายไป ลองกำมือแล้วแบออก จะเกิดวงกลมอนุภาคพุ่งออกจากฝ่ามือ ภาพจากกล้องประมวลผลในเครื่องของคุณทั้งหมด ไม่มีการอัปโหลด</p>
+    <div class="row">
+      <button class="btn primary" id="bStart" type="button">เริ่มใช้กล้อง</button>
+      <button class="btn" id="bMouse" type="button">ลองด้วยเมาส์หรือนิ้วบนจอก่อน</button>
+    </div>
+    <div id="msg" aria-live="polite"></div>
+    <p style="font-size:12.5px">ครั้งแรกต้องโหลดโมเดลตรวจจับมือจากอินเทอร์เน็ต (ประมาณ 8 MB) และเบราว์เซอร์จะถามสิทธิ์ใช้กล้อง</p>
+  </div>
+</div>
+
+<script type="module">
+const $=s=>document.querySelector(s);
+const TAU=Math.PI*2;
+
+/* ---------- รูปทรง (สมการพาราเมตริก) ---------- */
+const SHAPES={
+  heart:a=>[16*Math.sin(a)**3,13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a)+2],
+  star:a=>{const r=16*(0.38+0.62*Math.abs(Math.cos(2.5*a))**1.5);return [r*Math.cos(a+Math.PI/2),r*Math.sin(a+Math.PI/2)]},
+  flower:a=>{const r=16*(0.62+0.38*Math.cos(8*a));return [r*Math.cos(a),r*Math.sin(a)]},
+  butterfly:a=>{const t=6*a,r=Math.exp(Math.sin(t))-2*Math.cos(4*t)+Math.sin((2*t-Math.PI)/24)**5;return [2.6*r*Math.sin(t),2.6*r*Math.cos(t)]}
+};
+const PALS=[
+  {n:'ชมพูหวาน',c:['#ff6fae','#ffb3d4','#ff3d8b','#ffd9ea','#c2185b']},
+  {n:'รุ้ง',c:['#ff4d4d','#ffd24d','#4dff88','#4dc3ff','#b04dff']},
+  {n:'ไฟ',c:['#fff2b3','#ffcc33','#ff8c1a','#ff4d1a','#c1121f']},
+  {n:'น้ำแข็ง',c:['#b2ebf2','#00e5ff','#2979ff','#7c4dff','#5c6bff']},
+  {n:'ออโรรา',c:['#00ffa3','#00cfff','#8a5cff','#ff5ce1','#b8ffe9']},
+  {n:'ทอง',c:['#fff6c9','#ffd966','#f5b21a','#d98c00','#ffe9a8']}
+];
+const hex=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+PALS.forEach(p=>p.rgb=p.c.map(hex));
+let palIdx=0;
+function colorAt(t,cyclic=true){
+  const base=PALS[palIdx].rgb,pts=cyclic?base.concat([base[0]]):base;
+  t=Math.max(0,Math.min(0.9999,t));const n=pts.length-1,pos=t*n,i=Math.floor(pos),k=pos-i,a=pts[i],b=pts[i+1];
+  return [a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k,a[2]+(b[2]-a[2])*k];
+}
+const css=(c,f=1,mix=0)=>`rgb(${Math.min(255,(c[0]+(255-c[0])*mix)*f)|0},${Math.min(255,(c[1]+(255-c[1])*mix)*f)|0},${Math.min(255,(c[2]+(255-c[2])*mix)*f)|0})`;
+
+/* ---------- ผืนผ้าใบ ---------- */
+const cam=$('#cam'), art=$('#art'), ov=$('#ov');
+const actx=art.getContext('2d'), octx=ov.getContext('2d');
+let W=innerWidth,H=innerHeight,dpr=Math.min(2,devicePixelRatio||1);
+function resize(){
+  W=innerWidth;H=innerHeight;dpr=Math.min(2,devicePixelRatio||1);
+  [art,ov].forEach(c=>{c.width=Math.round(W*dpr);c.height=Math.round(H*dpr)});
+  actx.setTransform(dpr,0,0,dpr,0,0);actx.lineCap='round';
+  octx.setTransform(dpr,0,0,dpr,0,0);
+}
+addEventListener('resize',resize);resize();
+
+/* ---------- ระบบอนุภาค: ทุกอย่างเป็นเส้นสั้นที่ลอย ค่อย ๆ ช้าลง และจางหาย ---------- */
+const parts=[];
+function addP(x,y,ang,len,w,col,vx,vy,life,drag){
+  if(parts.length>9000)parts.splice(0,600);
+  parts.push({x,y,a:ang,l:len,w,c:col,vx,vy,life,max:life,d:drag});
+}
+function stepParts(){
+  let j=0;
+  for(let i=0;i<parts.length;i++){
+    const p=parts[i];p.life--;if(p.life<=0)continue;
+    p.x+=p.vx;p.y+=p.vy;p.vx*=p.d;p.vy*=p.d;parts[j++]=p;
+  }
+  parts.length=j;
+}
+function drawParts(){
+  actx.clearRect(0,0,W,H);
+  for(const p of parts){
+    actx.globalAlpha=Math.min(1,(p.life/p.max)*1.8);
+    actx.strokeStyle=p.c;actx.lineWidth=p.w;
+    actx.beginPath();actx.moveTo(p.x,p.y);actx.lineTo(p.x+Math.cos(p.a)*p.l,p.y+Math.sin(p.a)*p.l);actx.stroke();
+  }
+  actx.globalAlpha=1;
+}
+
+/* ---------- ตัวปล่อยอนุภาค ---------- */
+function trail(st,x,y){
+  if(!st.last){st.last={x,y};return}
+  const dx=x-st.last.x,dy=y-st.last.y,d=Math.hypot(dx,dy);
+  if(d<1.5)return;
+  const ang=Math.atan2(dy,dx),steps=Math.max(1,Math.ceil(d/5)),R=Math.min(30,9+d*0.18),cyc=(performance.now()/5000)%1;
+  for(let s=0;s<steps;s++){
+    const px=st.last.x+dx*(s+1)/steps,py=st.last.y+dy*(s+1)/steps;
+    for(let k=0;k<4;k++){
+      const o=Math.random()*TAU,rr=Math.random()*R,a=ang+(Math.random()-0.5)*1.6+(Math.random()<0.25?Math.random()*TAU:0);
+      addP(px+Math.cos(o)*rr,py+Math.sin(o)*rr,a,4+Math.random()*(10+d*0.25),0.7+Math.random()*1.7,
+        css(colorAt(cyc+Math.random()*0.15),0.85+Math.random()*0.15,Math.random()<0.2?0.5:0),
+        Math.cos(a)*0.5*Math.random(),Math.sin(a)*0.5*Math.random(),45+Math.random()*55,0.97);
+    }
+  }
+  st.last={x,y};
+}
+const stamps=[];
+function stamp(key,x,y,size){stamps.push({key,x,y,k:size/16,left:1400})}
+function runStamps(){
+  for(let i=stamps.length-1;i>=0;i--){
+    const s=stamps[i],f=SHAPES[s.key],n=Math.min(110,s.left);
+    for(let j=0;j<n;j++){
+      const edge=Math.random()<0.3,a=Math.random()*TAU,ratio=edge?1:0.03+0.97*Math.random(),p=f(a);
+      const px=p[0]*s.k*ratio,py=-p[1]*s.k*ratio,ang=Math.atan2(py,px)+(Math.random()*2-1)*0.55;
+      const len=(edge?10+Math.random()*22:4+Math.random()*10)*Math.max(0.6,s.k/6),sp=0.15+Math.random()*0.35;
+      addP(s.x+px,s.y+py,ang,len,(edge?0.6:0.7)+Math.random()*1.2,css(colorAt(ratio,false),0.8+0.2*Math.random(),edge?0.25:0),
+        Math.cos(ang)*sp,Math.sin(ang)*sp,75+Math.random()*55,0.985);
+    }
+    s.left-=n;if(s.left<=0)stamps.splice(i,1);
+  }
+}
+/* กำแล้วแบมือ: วงกลมอนุภาคพุ่งออกจากฝ่ามือ พร้อมวงใน และประกายตรงกลาง */
+function ring(x,y,hs){
+  const sp=Math.max(3,hs*0.05),sc=Math.max(0.7,hs/110);
+  for(let i=0;i<520;i++){
+    const a=i/520*TAU+Math.random()*0.02,v=sp*(0.9+Math.random()*0.2);
+    addP(x,y,a,(6+Math.random()*10)*sc,0.8+Math.random()*1.5,css(colorAt(a/TAU),0.85+Math.random()*0.15,0.15),Math.cos(a)*v,Math.sin(a)*v,55+Math.random()*15,0.965);
+  }
+  for(let i=0;i<240;i++){
+    const a=i/240*TAU+Math.random()*0.03,v=sp*0.55*(0.9+Math.random()*0.2);
+    addP(x,y,a,(4+Math.random()*7)*sc,0.7+Math.random()*1,css(colorAt(a/TAU+0.5),1,0.4),Math.cos(a)*v,Math.sin(a)*v,50+Math.random()*12,0.965);
+  }
+  for(let i=0;i<70;i++){
+    const a=Math.random()*TAU,v=sp*(0.2+Math.random()*1.4);
+    addP(x,y,a,3+Math.random()*5,1.2+Math.random(),css([255,255,255],1,0),Math.cos(a)*v,Math.sin(a)*v,30+Math.random()*25,0.93);
+  }
+}
+function spark(x,y){
+  const a=-Math.PI/2+(Math.random()-0.5)*1.6;
+  addP(x+(Math.random()-0.5)*8,y,a,3+Math.random()*6,0.8+Math.random()*1.2,css(colorAt(Math.random()),1,0.45),Math.cos(a)*(0.6+Math.random()),Math.sin(a)*(0.6+Math.random()),35+Math.random()*30,0.97);
+}
+
+/* ---------- UI ---------- */
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1400)}
+function setStatus(t){$('#status').textContent=t}
+function setPal(i,quiet){
+  palIdx=((i%PALS.length)+PALS.length)%PALS.length;
+  document.querySelectorAll('.sw').forEach((b,j)=>b.setAttribute('aria-pressed',j===palIdx));
+  if(!quiet)toast('ชุดสี: '+PALS[palIdx].n);
+}
+function buildUI(){
+  const host=$('#pals');
+  PALS.forEach((p,i)=>{
+    const b=document.createElement('button');b.type='button';b.className='sw';b.title=p.n;b.setAttribute('aria-label','ชุดสี '+p.n);
+    b.style.background=`linear-gradient(135deg,${p.c.join(',')})`;
+    b.addEventListener('click',()=>setPal(i));host.appendChild(b);
+  });
+  setPal(0,true);
+}
+$('#bClear').addEventListener('click',()=>{parts.length=0;stamps.length=0});
+$('#bCam').addEventListener('click',e=>{cam.classList.toggle('off');e.target.textContent=cam.classList.contains('off')?'แสดงภาพกล้อง':'ซ่อนภาพกล้อง'});
+$('#gToggle').addEventListener('click',e=>{const g=$('#guide'),m=g.classList.toggle('min');e.target.textContent=m?'ขยาย':'ย่อ';e.target.setAttribute('aria-expanded',!m)});
+$('#bSave').addEventListener('click',()=>{
+  const c=document.createElement('canvas');c.width=art.width;c.height=art.height;const x=c.getContext('2d');
+  x.fillStyle='#05060a';x.fillRect(0,0,c.width,c.height);
+  if(!cam.classList.contains('off')&&cam.videoWidth){
+    const s=Math.max(c.width/cam.videoWidth,c.height/cam.videoHeight),sw=cam.videoWidth*s,sh=cam.videoHeight*s;
+    x.save();x.translate(c.width,0);x.scale(-1,1);x.filter='brightness(.78) contrast(1.05)';x.drawImage(cam,(c.width-sw)/2,(c.height-sh)/2,sw,sh);x.restore();
+  }
+  x.drawImage(art,0,0);
+  c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='gesture-art.png';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)},'image/png');
+});
+addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(k==='c')$('#bClear').click();else if(k==='p')setPal(palIdx+1);else if(k==='v')$('#bCam').click();
+});
+
+/* ---------- เมาส์/นิ้วบนจอ (ใช้ได้โดยไม่ต้องเปิดกล้อง) ---------- */
+const mouse={last:null};
+art.addEventListener('pointerdown',e=>{art.setPointerCapture(e.pointerId);mouse.last=null;trail(mouse,e.clientX,e.clientY)});
+art.addEventListener('pointermove',e=>{if(e.buttons)trail(mouse,e.clientX,e.clientY)});
+art.addEventListener('pointerup',()=>{mouse.last=null});
+art.addEventListener('dblclick',e=>ring(e.clientX,e.clientY,110));
+
+/* ---------- ตรวจมือ ---------- */
+let landmarker=null,lastT=-1;
+const hands=[0,1].map(()=>({g:'none',cand:'none',cnt:0,last:null,sm:null,pinchCool:0,stampAt:0,fistAt:0,ringAt:0,sparkTick:0}));
+const GNAME={point:'ชี้: วาดเส้น',peace:'ชู 2 นิ้ว: หัวใจ',three:'ชู 3 นิ้ว: ดาว',rock:'ท่าร็อก: ผีเสื้อ',thumb:'ยกนิ้วโป้ง: ดอกไม้',pinch:'บีบนิ้ว: เปลี่ยนสี',open:'แบมือ',fist:'กำมือ… แล้วแบออก',none:''};
+const STAMP_OF={peace:'heart',three:'star',rock:'butterfly',thumb:'flower'};
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function mapPt(l){
+  const vw=cam.videoWidth||1,vh=cam.videoHeight||1,s=Math.max(W/vw,H/vh),ox=(W-vw*s)/2,oy=(H-vh*s)/2;
+  return {x:W-(ox+l.x*vw*s),y:oy+l.y*vh*s};
+}
+function classify(p){
+  const hs=dist(p[0],p[9]);
+  const [i,m,r,k]=[[8,6],[12,10],[16,14],[20,18]].map(([t,j])=>dist(p[t],p[0])>dist(p[j],p[0])*1.08);
+  const thumbOut=dist(p[4],p[17])>dist(p[3],p[17])*1.12;
+  if(dist(p[4],p[8])<hs*0.34)return 'pinch';
+  if(i&&!m&&!r&&!k)return 'point';
+  if(i&&m&&!r&&!k)return 'peace';
+  if(i&&m&&r&&!k)return 'three';
+  if(i&&!m&&!r&&k)return 'rock';
+  if(i&&m&&r&&k&&thumbOut)return 'open';
+  if(!i&&!m&&!r&&!k){
+    if(thumbOut&&p[4].y<p[3].y-hs*0.15&&p[4].y<p[2].y)return 'thumb';
+    return 'fist';
+  }
+  return 'none';
+}
+const CONN=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function handle(res,now){
+  octx.clearRect(0,0,W,H);
+  const list=(res&&res.landmarks)||[];
+  setStatus(list.length?`เห็นมือ ${list.length} ข้าง`:'ยังไม่เห็นมือ ยกมือขึ้นให้อยู่ในภาพ');
+  let label='';
+  for(let i=0;i<2;i++){
+    const st=hands[i],lm=list[i];
+    if(!lm){st.last=null;st.sm=null;st.g='none';st.cand='none';st.cnt=0;continue}
+    const p=lm.map(mapPt),g0=classify(p);
+    if(g0===st.cand)st.cnt++;else{st.cand=g0;st.cnt=1}
+    const prev=st.g;
+    if(st.cnt>=3)st.g=st.cand;
+    const g=st.g,hs=dist(p[0],p[9]),entered=g!==prev;
+    if(g==='fist')st.fistAt=now;
+    if(g==='point'){
+      const t=p[8];st.sm=st.sm?{x:st.sm.x+(t.x-st.sm.x)*0.55,y:st.sm.y+(t.y-st.sm.y)*0.55}:{x:t.x,y:t.y};
+      trail(st,st.sm.x,st.sm.y);
+    }else{st.last=null;st.sm=null}
+    if(g==='open'){
+      if(entered&&now-st.fistAt<900&&now-st.ringAt>700){st.ringAt=now;ring(p[9].x,p[9].y,hs)}
+      if(++st.sparkTick%3===0)[4,8,12,16,20].forEach(j=>spark(p[j].x,p[j].y));
+    }
+    const sk=STAMP_OF[g];
+    if(sk&&now-st.stampAt>1000){
+      st.stampAt=now;
+      const c=g==='peace'?{x:(p[8].x+p[12].x)/2,y:(p[8].y+p[12].y)/2}:g==='thumb'?p[4]:g==='rock'?{x:(p[8].x+p[20].x)/2,y:(p[8].y+p[20].y)/2}:p[12];
+      stamp(sk,c.x,c.y-hs*0.6,Math.max(40,hs*1.9));
+    }
+    if(g==='pinch'&&entered&&now-st.pinchCool>600){st.pinchCool=now;setPal(palIdx+1)}
+    octx.strokeStyle='rgba(255,255,255,.35)';octx.lineWidth=1.5;
+    CONN.forEach(([a,b])=>{octx.beginPath();octx.moveTo(p[a].x,p[a].y);octx.lineTo(p[b].x,p[b].y);octx.stroke()});
+    p.forEach((q,j)=>{octx.fillStyle=j===8?css(colorAt((now/5000)%1)):'rgba(255,255,255,.75)';octx.beginPath();octx.arc(q.x,q.y,j===8?7:2.5,0,TAU);octx.fill()});
+    if(!label&&GNAME[g])label=GNAME[g];
+  }
+  $('#gesture').textContent=label;
+}
+
+let acc=0,tPrev=performance.now();
+function loop(now){
+  requestAnimationFrame(loop);
+  if(landmarker&&cam.readyState>=2&&cam.currentTime!==lastT){
+    lastT=cam.currentTime;
+    try{handle(landmarker.detectForVideo(cam,now),now)}catch(e){}
+  }
+  acc+=Math.min(50,now-tPrev);tPrev=now;
+  let n=0;while(acc>=16.67&&n<3){runStamps();stepParts();acc-=16.67;n++}
+  drawParts();
+}
+
+/* ---------- เริ่มทำงาน ---------- */
+function cameraHelp(e){
+  if(!window.isSecureContext)return 'ต้องเปิดหน้านี้ผ่าน HTTPS หรือ localhost (เปิดไฟล์ .html โดยตรงบนมือถือจะใช้กล้องไม่ได้)';
+  switch(e?.name){
+    case 'NotAllowedError': return 'เบราว์เซอร์ปฏิเสธสิทธิ์กล้อง โปรดอนุญาต Camera ในการตั้งค่าเว็บไซต์/เบราว์เซอร์ แล้วกดเริ่มอีกครั้ง';
+    case 'NotFoundError': return 'ไม่พบกล้องที่ใช้งานได้ ตรวจสอบว่าอุปกรณ์มีกล้องและไม่ได้ถูกปิดใช้งาน';
+    case 'NotReadableError': return 'กล้องกำลังถูกแอปอื่นใช้งานอยู่ ปิดแอปกล้องหรือแอปประชุมแล้วลองใหม่';
+    case 'OverconstrainedError': return 'กล้องไม่รองรับการตั้งค่าที่ร้องขอ';
+    case 'SecurityError': return 'การตั้งค่าความปลอดภัยของเบราว์เซอร์บล็อกกล้อง ให้เปิดผ่าน HTTPS และอนุญาตสิทธิ์กล้อง';
+    default: return e?.message||'ตรวจสอบสิทธิ์กล้องและลองเปิดหน้านี้ด้วย Chrome หรือ Safari เวอร์ชันล่าสุด';
+  }
+}
+async function startCamera(){
+  const msg=$('#msg'),btn=$('#bStart');btn.disabled=true;
+  let stream=null;
+  try{
+    if(!window.isSecureContext)throw Object.assign(new Error('secure context required'),{name:'SecurityError'});
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw Object.assign(new Error('เบราว์เซอร์นี้ไม่รองรับการเปิดกล้อง'),{name:'NotSupportedError'});
+    msg.textContent='กำลังขอสิทธิ์ใช้กล้อง…';
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'user'},width:{ideal:1280},height:{ideal:720}},audio:false});
+    }catch(firstError){
+      if(['NotAllowedError','SecurityError'].includes(firstError?.name))throw firstError;
+      stream=await navigator.mediaDevices.getUserMedia({video:true,audio:false});
+    }
+    cam.srcObject=stream;await cam.play();
+    msg.textContent='กำลังโหลดโมเดลตรวจจับมือ…';setStatus('กำลังโหลดโมเดล…');
+    const V='0.10.14';
+    const mp=await import(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${V}/+esm`);
+    const fileset=await mp.FilesetResolver.forVisionTasks(`https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${V}/wasm`);
+    const model='https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+    const make=d=>mp.HandLandmarker.createFromOptions(fileset,{baseOptions:{modelAssetPath:model,delegate:d},runningMode:'VIDEO',numHands:2});
+    try{landmarker=await make('GPU')}catch(e){landmarker=await make('CPU')}
+    $('#start').hidden=true;setStatus('พร้อมแล้ว ลองกำมือแล้วแบออก');
+  }catch(e){
+    if(stream)stream.getTracks().forEach(track=>track.stop());
+    cam.srcObject=null;
+    msg.textContent='เปิดกล้องไม่สำเร็จ: '+cameraHelp(e)+' (ระหว่างนี้เลือกลองด้วยเมาส์หรือนิ้วบนจอได้)';
+    btn.disabled=false;setStatus('ไม่ได้ใช้กล้อง');
+  }
+}
+$('#bStart').addEventListener('click',startCamera);
+$('#bMouse').addEventListener('click',()=>{$('#start').hidden=true;cam.classList.add('off');$('#bCam').textContent='แสดงภาพกล้อง';setStatus('โหมดเมาส์ ลากเพื่อวาด ดับเบิลคลิกเพื่อปล่อยวงกลม')});
+buildUI();requestAnimationFrame(loop);
+</script>
+</body>
+</html>
